@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Quản lý khóa - RSA Digital Signature{% endblock %}
+
+{% block content %}
+<section class="section-head">
+  <div>
+    <p class="eyebrow">Quản lý khóa</p>
+    <h1><svg class="heading-icon" aria-hidden="true"><use href="#icon-key"></use></svg> Khóa RSA</h1>
+  </div>
+</section>
+
+<section class="split-layout">
+  <form class="panel" method="post" enctype="multipart/form-data">
+    <h2><svg class="title-icon" aria-hidden="true"><use href="#icon-key"></use></svg> Tạo cặp khóa</h2>
+    <label><span class="label-caption"><svg class="ui-icon" aria-hidden="true"><use href="#icon-key"></use></svg> Tên khóa</span>
+      <input name="key_name" placeholder="Key_Minh" required>
+    </label>
+    <label><span class="label-caption"><svg class="ui-icon" aria-hidden="true"><use href="#icon-user"></use></svg> Chủ sở hữu</span>
+      <input name="owner_name" placeholder="Nguyễn Văn Minh" required>
+    </label>
+    <label><span class="label-caption"><svg class="ui-icon" aria-hidden="true"><use href="#icon-image"></use></svg> Ảnh chữ ký</span>
+      <input type="file" name="signature_image" accept=".png,.jpg,.jpeg" data-signature-image-input>
+    </label>
+    <div class="signature-preview compact" data-signature-preview>
+      <span>Chưa chọn ảnh chữ ký</span>
+      <img alt="Xem trước ảnh chữ ký">
+    </div>
+    <button class="btn primary" type="submit"><svg class="ui-icon" aria-hidden="true"><use href="#icon-key"></use></svg> Tạo khóa</button>
+  </form>
+
+  <section class="panel wide">
+    <h2><svg class="title-icon" aria-hidden="true"><use href="#icon-calendar"></use></svg> Danh sách khóa</h2>
+    {% if keys %}
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Mã khóa</th>
+              <th>Chủ sở hữu</th>
+              <th>Ảnh chữ ký</th>
+              <th>Ngày tạo</th>
+              <th>Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for key in keys %}
+              <tr>
+                <td>{{ key.key_id }}</td>
+                <td>{{ key.owner_name }}</td>
+                <td>
+                  {% if key.signature_image_path %}
+                    <img class="table-signature-image" src="{{ url_for('key_signature_image', key_id=key.key_id) }}" alt="Ảnh chữ ký của {{ key.key_id }}">
+                  {% else %}
+                    <span class="muted-text">Chưa có</span>
+                  {% endif %}
+                </td>
+                <td>{{ key.created_at }}</td>
+                <td class="actions-cell">
+                  <a class="btn small" href="{{ url_for('keys', view=key.key_id) }}">Xem public</a>
+                  <a class="btn small" href="{{ url_for('download_public_key', key_id=key.key_id) }}">Tải</a>
+                  <form method="post" action="{{ url_for('delete_key', key_id=key.key_id) }}" data-confirm="Xóa khóa này?">
+                    <button class="btn danger small" type="submit">Xóa</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="empty">Chưa có khóa nào.</p>
+    {% endif %}
+  </section>
+</section>
+
+{% if public_key %}
+  <section class="panel">
+    <h2><svg class="title-icon" aria-hidden="true"><use href="#icon-key"></use></svg> Khóa công khai: {{ selected_key }}</h2>
+    <textarea class="mono output" readonly>{{ public_key }}</textarea>
+  </section>
+{% endif %}
+{% endblock %}

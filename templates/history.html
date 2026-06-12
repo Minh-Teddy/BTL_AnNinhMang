@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Lịch sử - RSA Digital Signature{% endblock %}
+
+{% block content %}
+<section class="section-head">
+  <div>
+    <p class="eyebrow">Nhật ký xử lý</p>
+    <h1><svg class="heading-icon" aria-hidden="true"><use href="#icon-calendar"></use></svg> Lịch sử ký và xác thực</h1>
+  </div>
+</section>
+
+<section class="panel">
+  <h2><svg class="title-icon" aria-hidden="true"><use href="#icon-signature"></use></svg> Lịch sử ký</h2>
+  {% if sign_history %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Văn bản</th>
+            <th>Người ký</th>
+            <th>Khóa</th>
+            <th>Thời gian</th>
+            <th>SHA-256</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in sign_history %}
+            <tr>
+              <td>{{ item.document_name }}</td>
+              <td>{{ item.owner_name }}</td>
+              <td>{{ item.key_id }}</td>
+              <td>{{ item.signed_at }}</td>
+              <td class="mono truncate">{{ item.hash }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="empty">Chưa có lịch sử ký.</p>
+  {% endif %}
+</section>
+
+<section class="panel">
+  <h2><svg class="title-icon" aria-hidden="true"><use href="#icon-document-check"></use></svg> Lịch sử xác thực</h2>
+  {% if verify_history %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Văn bản</th>
+            <th>Khóa</th>
+            <th>Kết quả</th>
+            <th>Thời gian</th>
+            <th>Thông báo</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in verify_history %}
+            <tr>
+              <td>{{ item.document_name }}</td>
+              <td>{{ item.key_id }}</td>
+              <td>{{ item.result }}</td>
+              <td>{{ item.verified_at }}</td>
+              <td>{{ item.message }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="empty">Chưa có lịch sử xác thực.</p>
+  {% endif %}
+</section>
+{% endblock %}

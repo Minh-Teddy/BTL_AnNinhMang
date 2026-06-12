@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}RSA Digital Signature{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <svg class="icon-sprite" aria-hidden="true">
+    <symbol id="icon-fingerprint" viewBox="0 0 24 24">
+      <path d="M12 3a8 8 0 0 0-8 8v2"></path>
+      <path d="M8 21v-6a4 4 0 0 1 8 0v1"></path>
+      <path d="M12 21v-6"></path>
+      <path d="M16 21a8 8 0 0 0 4-7v-3a8 8 0 0 0-4.7-7.3"></path>
+      <path d="M8 7.2A5.9 5.9 0 0 1 12 6a6 6 0 0 1 6 6v2"></path>
+      <path d="M6 17v-3a6 6 0 0 1 1-3.3"></path>
+    </symbol>
+    <symbol id="icon-user" viewBox="0 0 24 24">
+      <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"></path>
+      <path d="M4 21a8 8 0 0 1 16 0"></path>
+    </symbol>
+    <symbol id="icon-calendar" viewBox="0 0 24 24">
+      <path d="M7 3v4"></path>
+      <path d="M17 3v4"></path>
+      <path d="M4 8h16"></path>
+      <path d="M5 5h14a1 1 0 0 1 1 1v14H4V6a1 1 0 0 1 1-1Z"></path>
+    </symbol>
+    <symbol id="icon-image" viewBox="0 0 24 24">
+      <path d="M4 5h16v14H4z"></path>
+      <path d="m4 16 5-5 4 4 2-2 5 5"></path>
+      <path d="M15.5 9.5h.01"></path>
+    </symbol>
+    <symbol id="icon-pen" viewBox="0 0 24 24">
+      <path d="m4 20 4.5-1 10-10a2.2 2.2 0 0 0-3.1-3.1l-10 10L4 20Z"></path>
+      <path d="m14 7 3 3"></path>
+    </symbol>
+    <symbol id="icon-key" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Vòng tròn đầu chìa khóa -->
+  <circle cx="7.5" cy="7.5" r="4.5"/>
+  <!-- Lỗ chìa khóa -->
+  <circle cx="7.5" cy="7.5" r="1.5"/>
+  <!-- Thân chìa khóa -->
+  <line x1="11.5" y1="11.5" x2="20" y2="20"/>
+  <!-- Răng chìa khóa 1 -->
+  <line x1="16.5" y1="16.5" x2="18.5" y2="14.5"/>
+  <!-- Răng chìa khóa 2 -->
+  <line x1="18.5" y1="18.5" x2="20.5" y2="16.5"/>
+</symbol>
+    <symbol id="icon-signature" viewBox="0 0 24 24">
+      <path d="M3 17c3 0 3-10 6-10 2.5 0 .5 10 3 10 2 0 2-5 4-5s1.5 5 5 5"></path>
+      <path d="M3 21h18"></path>
+    </symbol>
+    <symbol id="icon-document-check" viewBox="0 0 24 24">
+      <path d="M6 3h8l4 4v14H6z"></path>
+      <path d="M14 3v5h5"></path>
+      <path d="m9 15 2 2 4-5"></path>
+    </symbol>
+  </svg>
+
+  <header class="topbar">
+    <a class="brand" href="{{ url_for('index') }}">
+      <svg class="ui-icon" aria-hidden="true"><use href="#icon-fingerprint"></use></svg>
+      RSA Signature
+    </a>
+    <nav class="nav">
+      <a href="{{ url_for('keys') }}"><svg class="ui-icon" aria-hidden="true"><use href="#icon-key"></use></svg> Khóa RSA</a>
+      <a href="{{ url_for('sign') }}"><svg class="ui-icon" aria-hidden="true"><use href="#icon-pen"></use></svg> Ký văn bản</a>
+      <a href="{{ url_for('verify') }}"><svg class="ui-icon" aria-hidden="true"><use href="#icon-document-check"></use></svg> Xác thực</a>
+      <a href="{{ url_for('history') }}"><svg class="ui-icon" aria-hidden="true"><use href="#icon-calendar"></use></svg> Lịch sử</a>
+    </nav>
+  </header>
+
+  <main class="page">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <section class="messages">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </section>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

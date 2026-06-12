@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Trang chủ - RSA Digital Signature{% endblock %}
+
+{% block content %}
+<section class="dashboard">
+  <div>
+    <p class="eyebrow">Ứng dụng chữ ký số RSA</p>
+    <h1>Xác thực nội dung văn bản và phát hiện sửa đổi</h1>
+    <p class="lead">Tạo cặp khóa RSA, ký văn bản bằng khóa riêng tư, rồi xác thực bằng khóa công khai với SHA-256.</p>
+  </div>
+  <div class="status-panel">
+    <svg class="status-icon" aria-hidden="true"><use href="#icon-key"></use></svg>
+    <span class="stat-number">{{ key_count }}</span>
+    <span class="stat-label">khóa đang lưu</span>
+  </div>
+</section>
+
+<section class="quick-actions">
+  <a class="action" href="{{ url_for('keys') }}">
+    <span class="action-icon"><svg class="ui-icon" aria-hidden="true"><use href="#icon-key"></use></svg></span>
+    <strong>Tạo khóa RSA</strong>
+    <span>Quản lý khóa riêng tư và khóa công khai.</span>
+  </a>
+  <a class="action" href="{{ url_for('sign') }}">
+    <span class="action-icon"><svg class="ui-icon" aria-hidden="true"><use href="#icon-pen"></use></svg></span>
+    <strong>Ký văn bản</strong>
+    <span>Sinh hash SHA-256 và chữ ký Base64.</span>
+  </a>
+  <a class="action" href="{{ url_for('verify') }}">
+    <span class="action-icon"><svg class="ui-icon" aria-hidden="true"><use href="#icon-document-check"></use></svg></span>
+    <strong>Xác thực</strong>
+    <span>Kiểm tra văn bản gốc, chữ ký và khóa.</span>
+  </a>
+  <a class="action" href="{{ url_for('history') }}">
+    <span class="action-icon"><svg class="ui-icon" aria-hidden="true"><use href="#icon-calendar"></use></svg></span>
+    <strong>Lịch sử</strong>
+    <span>Xem lại lần ký và xác thực gần đây.</span>
+  </a>
+</section>
+{% endblock %}
