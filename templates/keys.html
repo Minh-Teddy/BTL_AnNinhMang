@@ -20,7 +20,10 @@
       <input name="owner_name" placeholder="Nguyễn Văn Minh" required>
     </label>
     <label><span class="label-caption"><svg class="ui-icon" aria-hidden="true"><use href="#icon-image"></use></svg> Ảnh chữ ký</span>
-      <input type="file" name="signature_image" accept=".png,.jpg,.jpeg" data-signature-image-input>
+      <span class="file-picker-button">
+        Chọn tệp
+        <input class="file-picker-input" type="file" name="signature_image" accept=".png,.jpg,.jpeg" data-signature-image-input>
+      </span>
     </label>
     <div class="signature-preview compact" data-signature-preview>
       <span>Chưa chọn ảnh chữ ký</span>

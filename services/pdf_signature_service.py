@@ -16,8 +16,10 @@ except ImportError:  # pragma: no cover - compatibility for older installs
 
 
 class PdfSignatureService:
+    """NHOM PDF - Dong tem hien thi, nhung metadata RSA va xac thuc metadata."""
     @staticmethod
     def sign_pdf(pdf_bytes, private_key, key_id, owner_name, placement, signature_image_source=None):
+        """Bam PDF goc, ky hash, dong tem va nhung ket qua vao metadata."""
         pdf_hash = hashlib.sha256(pdf_bytes).hexdigest()
         signature = private_key.sign(
             bytes.fromhex(pdf_hash),
@@ -73,6 +75,11 @@ class PdfSignatureService:
 
     @staticmethod
     def verify_pdf(pdf_bytes, public_key):
+        """Xac thuc chu ky cua hash duoc doc tu metadata PDF.
+
+        Luu y: phien ban hien tai chua tinh lai hash tu noi dung PDF tai len,
+        nen ham nay chua the ket luan chac chan rang trang PDF khong bi sua.
+        """
         reader = PdfReader(io.BytesIO(pdf_bytes))
         metadata = reader.metadata or {}
         signature = metadata.get("/RSA_Signature")
@@ -81,7 +88,7 @@ class PdfSignatureService:
         if not signature or not original_hash:
             return {
                 "valid": False,
-                "message": "File PDF khong co metadata chu ky RSA cua he thong.",
+                "message": "Tệp PDF không có metadata chữ ký RSA của hệ thống.",
                 "hash": "",
                 "verified_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             }
@@ -95,12 +102,12 @@ class PdfSignatureService:
             )
             valid = True
             message = (
-                f"Chu ky PDF hop le. Nguoi ky: {metadata.get('/RSA_Signer', 'Unknown')}; "
-                f"thoi gian: {metadata.get('/RSA_SignedAt', 'Unknown')}."
+                f"Chữ ký hợp lệ. Người ký: {metadata.get('/RSA_Signer', 'Không xác định')}; "
+                f"thời gian: {metadata.get('/RSA_SignedAt', 'Không xác định')}."
             )
         except (InvalidSignature, ValueError, TypeError):
             valid = False
-            message = "Chu ky PDF khong hop le hoac metadata da bi sua."
+            message = "Chữ ký PDF không hợp lệ hoặc metadata đã bị sửa."
 
         return {
             "valid": valid,
@@ -121,6 +128,7 @@ class PdfSignatureService:
         stamp_height,
         signature_image_source=None,
     ):
+        """Tao lop PDF trong suot chua thong tin va anh chu ky hien thi."""
         buffer = io.BytesIO()
         pdf_canvas = canvas.Canvas(buffer, pagesize=(page_width, page_height))
 

@@ -2,6 +2,7 @@ from pathlib import Path
 
 
 class DocumentService:
+    """NHOM TAI LIEU TEXT - Doc, luu, kiem tra va chuan hoa van ban."""
     def __init__(self, storage_dir="storage/documents"):
         self.storage_dir = Path(storage_dir)
         self.storage_dir.mkdir(parents=True, exist_ok=True)

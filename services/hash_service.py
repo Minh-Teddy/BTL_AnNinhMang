@@ -3,6 +3,7 @@ from pathlib import Path
 
 
 class HashService:
+    """NHOM BAM DU LIEU - Tinh va so sanh SHA-256 cua text/tep."""
     @staticmethod
     def hash_text(text):
         normalized = text if text is not None else ""

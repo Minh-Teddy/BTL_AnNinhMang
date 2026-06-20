@@ -1,0 +1,13 @@
+{
+  "format": "RSA_SIGNED_TEXT",
+  "version": 1,
+  "document_name": "Văn bản nhập trực tiếp",
+  "content": "ABCD",
+  "owner_name": "Minh",
+  "key_id": "Key_Minh1",
+  "signed_at": "2026-06-20 09:03:09",
+  "hash": "e12e115acf4552b2568b55e93cbd39394c4ef81c82447fafc997882a02d23677",
+  "hash_algorithm": "SHA-256",
+  "signature_algorithm": "RSA-SHA256",
+  "signature": "crXAPvyoHbA9+t7p64Xmd4IOKu3QXHhihMetDdU7adMMNXpV4GoVnqAYa4GWbAK+scXSe3Gwm/1Hh1p4+C9opG/nO3eXHozMuNUFDzVa+Ppo6tB+bgx/ffIMKPaWgXLBqORXC6JSNOQYJtxAqfKVTiCfwy0I3LU59BP8+tMgs0BfgqsbzlVGXfAJWZ6JW3EA+DTC7Q4Tjg5Jhmi6Yw2GaiYmeka0Px4E7qUVGea98sqkVzjU5nELqU4CUOTGp0dumUsHpmDZFv7nwBtT/K7rXlv2yYsQ6/LNtrjMUFYyTSgNoBhzboF8J/1pixw5YD1eWeem7TbyfFLW+KHOLnKkzg=="
+}

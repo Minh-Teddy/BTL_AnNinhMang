@@ -3,6 +3,7 @@ from pathlib import Path
 
 
 class HistoryService:
+    """NHOM NHAT KY - Luu va truy van lich su ky/xac thuc bang JSON."""
     def __init__(self, storage_dir="storage/histories"):
         self.storage_dir = Path(storage_dir)
         self.storage_dir.mkdir(parents=True, exist_ok=True)

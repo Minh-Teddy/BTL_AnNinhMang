@@ -27,6 +27,8 @@ signed_document_dir = Path("storage/signed_documents")
 signed_document_dir.mkdir(parents=True, exist_ok=True)
 
 
+# NHOM 1 - DIEU HUONG GIAO DIEN VA QUAN LY KHOA
+# Cac route trong nhom nay hien thi trang chu, tao/xoa khoa va xem lich su.
 @app.route("/")
 def index():
     return render_template("index.html", key_count=len(key_manager.list_keys()))
@@ -81,6 +83,7 @@ def delete_key(key_id):
 
 @app.route("/sign", methods=["GET", "POST"])
 def sign():
+    """NHOM 2 - Ky noi dung text hoac PDF bang khoa rieng RSA."""
     result = None
     content = ""
     selected_key = ""
@@ -111,13 +114,9 @@ def sign():
                         "signature_path": result["signed_document_path"],
                     }
                 )
-                flash("Ky PDF thanh cong.", "success")
                 return render_template(
-                    "sign.html",
-                    keys=key_manager.list_keys(),
+                    "sign_result.html",
                     result=result,
-                    content=content,
-                    selected_key=selected_key,
                     method=method,
                 )
 
@@ -131,8 +130,12 @@ def sign():
             sign_result = SignatureService.sign_text(normalized, private_key)
             metadata = key_manager.get_metadata(selected_key)
             signed_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            signature_path = _save_signature_file(
+            document_name = source_file_name or "Văn bản nhập trực tiếp"
+            signature_path = _save_signed_text_package(
+                normalized,
+                document_name,
                 selected_key,
+                metadata.get("owner_name", ""),
                 sign_result["signature"],
                 sign_result["hash"],
                 signed_at,
@@ -144,12 +147,13 @@ def sign():
                 "key_id": selected_key,
                 "owner_name": metadata.get("owner_name", ""),
                 "signed_at": signed_at,
+                "document_name": document_name,
                 "signature_path": signature_path,
                 "signed_document_path": signed_document_path,
             }
             history_service.save_sign_history(
                 {
-                    "document_name": request.form.get("document_name") or source_file_name or "Văn bản nhập trực tiếp",
+                    "document_name": document_name,
                     "owner_name": metadata.get("owner_name", ""),
                     "key_id": selected_key,
                     "signed_at": signed_at,
@@ -157,7 +161,11 @@ def sign():
                     "signature_path": signature_path,
                 }
             )
-            flash("Ký văn bản thành công.", "success")
+            return render_template(
+                "sign_result.html",
+                result=result,
+                method=method,
+            )
         except Exception as exc:
             flash(str(exc), "error")
 
@@ -173,34 +181,32 @@ def sign():
 
 @app.route("/verify", methods=["GET", "POST"])
 def verify():
+    """NHOM 3 - Xac thuc chu ky va thong bao kha nang noi dung bi sua."""
     result = None
-    content = ""
-    signature = ""
     selected_key = ""
     method = request.args.get("method", "")
 
     if request.method == "POST" and not method:
         method = request.form.get("processing_method", "")
-        if method not in {"text", "file", "pdf"}:
+        if method not in {"text", "pdf"}:
             flash("Vui lòng chọn phương thức xử lý", "error")
         else:
             return redirect(url_for("verify", method=method))
 
-    if method not in {"", "text", "file", "pdf"}:
+    if method not in {"", "text", "pdf"}:
         return redirect(url_for("verify"))
 
     if request.method == "POST" and method:
         selected_key = request.form.get("key_id", "")
-        signature = request.form.get("signature", "")
         try:
             if method == "pdf":
                 if not selected_key:
-                    raise ValueError("Vui long chon khoa cong khai de xac thuc.")
+                    raise ValueError("Vui lòng chọn khóa công khai để xác thực.")
                 uploaded_file = request.files.get("document_file")
                 if not uploaded_file or not uploaded_file.filename:
-                    raise ValueError("Vui long tai len file PDF can xac thuc.")
+                    raise ValueError("Vui lòng tải lên tệp PDF cần xác thực.")
                 if Path(uploaded_file.filename).suffix.lower() != ".pdf":
-                    raise ValueError("Chi ho tro xac thuc file PDF.")
+                    raise ValueError("Chỉ hỗ trợ xác thực tệp PDF.")
 
                 public_key = key_manager.load_public_key(selected_key)
                 result = PdfSignatureService.verify_pdf(uploaded_file.read(), public_key)
@@ -209,36 +215,39 @@ def verify():
                         "document_name": Path(uploaded_file.filename).name,
                         "key_id": selected_key,
                         "verified_at": result["verified_at"],
-                        "result": "Hop le" if result["valid"] else "Khong hop le",
+                        "result": "Hợp lệ" if result["valid"] else "Không hợp lệ",
                         "message": result["message"],
                         "hash": result["hash"],
                     }
                 )
                 return render_template(
-                    "verify.html",
-                    keys=key_manager.list_keys(),
+                    "verify_result.html",
                     result=result,
-                    content=content,
-                    signature=signature,
                     selected_key=selected_key,
-                    method=method,
                 )
 
-            content, source_file_name = _content_from_form(method)
-            normalized = document_service.normalize_text(content)
+            package = _signed_text_package_from_form()
+            selected_key = package["key_id"]
+            normalized = document_service.normalize_text(package["content"])
             document_service.validate_text(normalized)
-            if not selected_key:
-                raise ValueError("Vui lòng chọn khóa công khai để xác thực.")
 
             public_key = key_manager.load_public_key(selected_key)
-            valid = SignatureService.verify_text(normalized, signature, public_key)
+            signature_valid = SignatureService.verify_text(
+                normalized,
+                package["signature"],
+                public_key,
+            )
             verified_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             text_hash = HashService.hash_text(normalized)
-            message = (
-                "Chữ ký hợp lệ. Văn bản chưa bị sửa đổi."
-                if valid
-                else "Chữ ký không hợp lệ. Văn bản có thể đã bị sửa đổi, chữ ký bị sai hoặc dùng sai khóa."
-            )
+            hash_valid = HashService.compare_hash(text_hash, package["hash"])
+            valid = signature_valid and hash_valid
+            if valid:
+                message = "Chữ ký hợp lệ. Văn bản chưa bị sửa đổi."
+            elif not hash_valid:
+                message = "Nội dung trong gói văn bản đã bị sửa đổi sau khi ký."
+            else:
+                message = "Chữ ký không hợp lệ hoặc không khớp với khóa công khai."
+
             result = {
                 "valid": valid,
                 "message": message,
@@ -247,13 +256,18 @@ def verify():
             }
             history_service.save_verify_history(
                 {
-                    "document_name": request.form.get("document_name") or "Văn bản nhập trực tiếp",
+                    "document_name": package["document_name"],
                     "key_id": selected_key,
                     "verified_at": verified_at,
                     "result": "Hợp lệ" if valid else "Không hợp lệ",
                     "message": message,
                     "hash": text_hash,
                 }
+            )
+            return render_template(
+                "verify_result.html",
+                result=result,
+                selected_key=selected_key,
             )
         except Exception as exc:
             flash(str(exc), "error")
@@ -262,8 +276,6 @@ def verify():
         "verify.html",
         keys=key_manager.list_keys(),
         result=result,
-        content=content,
-        signature=signature,
         selected_key=selected_key,
         method=method,
     )
@@ -271,6 +283,7 @@ def verify():
 
 @app.route("/history")
 def history():
+    """NHOM 4 - Hien thi nhat ky ky va xac thuc."""
     return render_template(
         "history.html",
         sign_history=history_service.get_sign_history(),
@@ -280,6 +293,7 @@ def history():
 
 @app.route("/download/public/<key_id>")
 def download_public_key(key_id):
+    """NHOM 5 - Tai cac ket qua do he thong tao ra."""
     path = Path("storage/keys") / key_id / "public_key.pem"
     if not path.exists():
         flash("Không tìm thấy khóa công khai.", "error")
@@ -304,7 +318,7 @@ def download_signature():
     path = request.args.get("path", "")
     target = Path(path)
     if not target.exists() or signature_dir.resolve() not in target.resolve().parents:
-        flash("Không tìm thấy file chữ ký.", "error")
+        flash("Không tìm thấy tệp chữ ký.", "error")
         return redirect(url_for("sign"))
     return send_file(target, as_attachment=True)
 
@@ -314,33 +328,76 @@ def download_signed_document():
     path = request.args.get("path", "")
     target = Path(path)
     if not target.exists() or signed_document_dir.resolve() not in target.resolve().parents:
-        flash("Không tìm thấy file đã ký.", "error")
-        return redirect(url_for("sign", method="file"))
+        flash("Không tìm thấy tệp đã ký.", "error")
+        return redirect(url_for("sign"))
     return send_file(target, as_attachment=True)
 
 
 def _content_from_form(method):
+    """NHOM 6 - Doc va chuan hoa du lieu dau vao tu bieu mau."""
     if method == "file":
         uploaded_file = request.files.get("document_file")
         if not uploaded_file or not uploaded_file.filename:
-            raise ValueError("Vui lòng tải lên file cần xử lý.")
+            raise ValueError("Vui lòng tải lên tệp cần xử lý.")
         return document_service.read_text_file(uploaded_file), Path(uploaded_file.filename).name
     return request.form.get("content", ""), ""
 
 
+def _signed_text_package_from_form():
+    """Doc va kiem tra cau truc goi van ban da ky do nguoi dung tai len."""
+    package_file = request.files.get("signed_text_package")
+    if not package_file or not package_file.filename:
+        raise ValueError("Vui lòng tải lên gói văn bản đã ký.")
+    if Path(package_file.filename).suffix.lower() != ".json":
+        raise ValueError("Gói văn bản đã ký phải là tệp JSON.")
+
+    package_bytes = package_file.read(5 * 1024 * 1024 + 1)
+    if len(package_bytes) > 5 * 1024 * 1024:
+        raise ValueError("Gói văn bản đã ký không được vượt quá 5 MB.")
+
+    try:
+        package = json.loads(package_bytes.decode("utf-8-sig"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ValueError("Gói văn bản đã ký không phải JSON UTF-8 hợp lệ.") from exc
+
+    if not isinstance(package, dict):
+        raise ValueError("Cấu trúc gói văn bản đã ký không hợp lệ.")
+    if package.get("format") != "RSA_SIGNED_TEXT" or package.get("version") != 1:
+        raise ValueError("Định dạng hoặc phiên bản gói văn bản không được hỗ trợ.")
+    if package.get("hash_algorithm") != "SHA-256":
+        raise ValueError("Gói văn bản không sử dụng thuật toán băm SHA-256.")
+    if package.get("signature_algorithm") != "RSA-SHA256":
+        raise ValueError("Gói văn bản không sử dụng thuật toán chữ ký RSA-SHA256.")
+
+    required_text_fields = ("content", "key_id", "hash", "signature")
+    for field_name in required_text_fields:
+        value = package.get(field_name)
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError(f"Gói văn bản thiếu trường bắt buộc: {field_name}.")
+
+    document_name = package.get("document_name")
+    package["document_name"] = (
+        document_name.strip()
+        if isinstance(document_name, str) and document_name.strip()
+        else "Văn bản đã ký"
+    )
+    return package
+
+
 def _sign_pdf_from_form(selected_key):
+    """Dieu phoi viec ky PDF, dong tem va luu file ket qua."""
     if not selected_key:
-        raise ValueError("Vui long chon khoa rieng tu de ky.")
+        raise ValueError("Vui lòng chọn khóa riêng tư để ký.")
 
     uploaded_file = request.files.get("document_file")
     if not uploaded_file or not uploaded_file.filename:
-        raise ValueError("Vui long tai len file PDF can ky.")
+        raise ValueError("Vui lòng tải lên tệp PDF cần ký.")
     if Path(uploaded_file.filename).suffix.lower() != ".pdf":
-        raise ValueError("Chi ho tro ky file PDF.")
+        raise ValueError("Chỉ hỗ trợ ký tệp PDF.")
 
     pdf_bytes = uploaded_file.read()
     if not pdf_bytes:
-        raise ValueError("File PDF khong duoc de trong.")
+        raise ValueError("Tệp PDF không được để trống.")
 
     metadata = key_manager.get_metadata(selected_key)
     sign_result = PdfSignatureService.sign_pdf(
@@ -373,6 +430,7 @@ def _sign_pdf_from_form(selected_key):
 
 
 def _pdf_placement_from_form():
+    """Lay toa do tem PDF va gioi han gia tri trong pham vi hop le."""
     return {
         "x": _int_from_form("x", 160, 0, 10000),
         "y": _int_from_form("y", 120, 0, 10000),
@@ -383,35 +441,52 @@ def _pdf_placement_from_form():
 
 
 def _pdf_signature_image_source_from_form(key_id):
+    """Lay anh chu ky moi, hoac anh da luu cung cap khoa."""
     image_file = request.files.get("signature_image")
     if image_file and image_file.filename:
         suffix = Path(image_file.filename).suffix.lower()
         if suffix not in {".png", ".jpg", ".jpeg"}:
-            raise ValueError("Anh chu ky chi ho tro PNG, JPG hoac JPEG.")
+            raise ValueError("Ảnh chữ ký chỉ hỗ trợ PNG, JPG hoặc JPEG.")
         image_bytes = image_file.read()
         if not image_bytes:
-            raise ValueError("Anh chu ky khong duoc de trong.")
+            raise ValueError("Ảnh chữ ký không được để trống.")
         return io.BytesIO(image_bytes)
 
     return key_manager.get_signature_image_path(key_id)
 
 
-def _save_signature_file(key_id, signature, text_hash, signed_at):
-    file_name = f"signature_{key_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+def _save_signed_text_package(
+    content,
+    document_name,
+    key_id,
+    owner_name,
+    signature,
+    text_hash,
+    signed_at,
+):
+    """Luu noi dung va chu ky text trong mot goi JSON co the xac thuc lai."""
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    file_name = f"signed_text_{key_id}_{timestamp}.json"
     path = signature_dir / file_name
     payload = {
-        "signature": signature,
+        "format": "RSA_SIGNED_TEXT",
+        "version": 1,
+        "document_name": document_name,
+        "content": content,
+        "owner_name": owner_name,
+        "key_id": key_id,
+        "signed_at": signed_at,
+        "hash": text_hash,
         "hash_algorithm": "SHA-256",
         "signature_algorithm": "RSA-SHA256",
-        "key_id": key_id,
-        "hash": text_hash,
-        "signed_at": signed_at,
+        "signature": signature,
     }
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
     return str(path)
 
 
 def _signature_image_config_from_form(key_id):
+    """NHOM 7 - Ho tro anh chu ky hien thi (khong phai chu ky so RSA)."""
     image_file = request.files.get("signature_image")
     data_url = None
     if image_file and image_file.filename:
@@ -457,6 +532,7 @@ def _image_path_to_data_url(path, image_type):
 
 
 def _int_from_form(field_name, default, min_value, max_value):
+    """Chuyen mot truong bieu mau sang so nguyen co gioi han."""
     try:
         value = int(request.form.get(field_name, default))
     except (TypeError, ValueError):
@@ -465,6 +541,11 @@ def _int_from_form(field_name, default, min_value, max_value):
 
 
 def _save_signed_document_file(content, source_file_name, sign_metadata, image_config):
+    """Tao ban HTML co noi dung, anh hien thi va metadata chu ky.
+
+    Ham nay hien khong duoc route ky hien tai goi; duoc giu lai nhu ma ho tro
+    cho dinh dang tai lieu HTML cu.
+    """
     source_stem = Path(source_file_name or "document.txt").stem or "document"
     safe_stem = "".join(ch for ch in source_stem if ch.isalnum() or ch in ("-", "_")) or "document"
     file_name = f"signed_{safe_stem}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"

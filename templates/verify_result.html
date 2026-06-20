@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Kết quả xác thực - RSA Digital Signature{% endblock %}
+
+{% block content %}
+<section class="verification-result-page">
+  <div class="verification-status-icon {{ 'valid' if result.valid else 'invalid' }}">
+    <svg aria-hidden="true"><use href="#icon-document-check"></use></svg>
+  </div>
+
+  <p class="eyebrow">Kết quả kiểm tra toàn vẹn</p>
+  <h1>{{ 'Xác thực thành công' if result.valid else 'Xác thực thất bại' }}</h1>
+  <!-- <p class="verification-result-message">{{ result.message }}</p> -->
+
+  <section class="panel result-panel {{ 'valid' if result.valid else 'invalid' }}">
+    <div class="verification-time">
+      <span>Thời gian xác thực</span>
+      <strong>{{ result.verified_at }}</strong>
+    </div>
+  </section>
+
+  <div class="verification-result-actions">
+    <a class="btn primary" href="{{ url_for('verify') }}">Xác thực tệp khác</a>
+    <a class="btn" href="{{ url_for('history') }}">Xem lịch sử</a>
+  </div>
+</section>
+{% endblock %}

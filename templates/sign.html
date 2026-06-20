@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 
-{% block title %}Ky van ban - RSA Digital Signature{% endblock %}
+{% block title %}Ký văn bản - RSA Digital Signature{% endblock %}
 
 {% block content %}
 <section class="section-head">
   <div>
-    <p class="eyebrow">Ky so</p>
-    <h1><svg class="heading-icon" aria-hidden="true"><use href="#icon-pen"></use></svg> {% if method %}Ky {% if method == 'text' %}van ban truc tiep{% elif method == 'pdf' %}file PDF{% else %}file tai lieu{% endif %}{% else %}Chon phuong thuc ky{% endif %}</h1>
+    <p class="eyebrow">Ký số</p>
+    <h1><svg class="heading-icon" aria-hidden="true"><use href="#icon-pen"></use></svg> {% if method %}Ký {% if method == 'text' %}văn bản trực tiếp{% elif method == 'pdf' %}tệp PDF{% else %}tệp tài liệu{% endif %}{% else %}Chọn phương thức ký{% endif %}</h1>
   </div>
   {% if method %}
-    <a class="btn" href="{{ url_for('sign') }}">Doi phuong thuc</a>
+    <a class="btn" href="{{ url_for('sign') }}">Đổi phương thức</a>
   {% endif %}
 </section>
 
@@ -20,30 +20,32 @@
         <input type="radio" name="processing_method" value="text">
         <span class="method-icon" aria-hidden="true"><svg class="ui-icon"><use href="#icon-document-check"></use></svg></span>
         <span>
-          <strong>Ky van ban truc tiep</strong>
-          <small>Nhap hoac dan noi dung van ban vao o nhap lieu.</small>
+          <strong>Ký văn bản trực tiếp</strong>
+          <small>Nhập hoặc dán nội dung văn bản vào ô nhập liệu.</small>
         </span>
       </label>
       <label class="method-option">
         <input type="radio" name="processing_method" value="pdf">
         <span class="method-icon" aria-hidden="true"><svg class="ui-icon"><use href="#icon-document-check"></use></svg></span>
         <span>
-          <strong>Ky PDF</strong>
-          <small>Tai len PDF, keo tha khung chu ky len trang can ky va xuat PDF da dong tem RSA.</small>
+          <strong>Ký PDF</strong>
+          <small>Tải lên PDF</small>
         </span>
       </label>
     </div>
-    <button class="btn primary" type="submit" disabled><svg class="ui-icon" aria-hidden="true"><use href="#icon-pen"></use></svg> Tiep tuc</button>
+    <button class="btn primary" type="submit" disabled><svg class="ui-icon" aria-hidden="true"><use href="#icon-pen"></use></svg> Tiếp tục</button>
   </form>
 {% else %}
   <form class="panel workbench" method="post" enctype="multipart/form-data">
     <div class="form-grid">
-      <label><span class="label-caption"><svg class="ui-icon" aria-hidden="true"><use href="#icon-document-check"></use></svg> Ten van ban</span>
-        <input name="document_name" placeholder="{{ 'vanban1.txt' if method == 'text' else ('hopdong.pdf' if method == 'pdf' else 'tailieu.txt') }}">
-      </label>
-      <label><span class="label-caption"><svg class="ui-icon" aria-hidden="true"><use href="#icon-key"></use></svg> Chon khoa rieng tu</span>
+      {% if method == 'pdf' %}
+        <label><span class="label-caption"><svg class="ui-icon" aria-hidden="true"><use href="#icon-document-check"></use></svg> Tên văn bản</span>
+          <input name="document_name" placeholder="hopdong.pdf">
+        </label>
+      {% endif %}
+      <label><span class="label-caption"><svg class="ui-icon" aria-hidden="true"><use href="#icon-key"></use></svg> Chọn khóa</span>
         <select name="key_id" required data-key-select>
-          <option value="">-- Chon khoa --</option>
+          <option value="">-- Chọn khóa --</option>
           {% for key in keys %}
             <option
               value="{{ key.key_id }}"
@@ -56,24 +58,22 @@
     </div>
 
     {% if method == 'text' %}
-      <label><span class="label-caption"><svg class="ui-icon" aria-hidden="true"><use href="#icon-document-check"></use></svg> Noi dung van ban</span>
-        <textarea name="content" placeholder="Nhap noi dung can ky">{{ content }}</textarea>
+      <label><span class="label-caption"><svg class="ui-icon" aria-hidden="true"><use href="#icon-document-check"></use></svg> Nội dung văn bản</span>
+        <textarea name="content" placeholder="Nhập nội dung cần ký">{{ content }}</textarea>
       </label>
     {% elif method == 'pdf' %}
-      <label><span class="label-caption"><svg class="ui-icon" aria-hidden="true"><use href="#icon-document-check"></use></svg> File PDF can ky</span>
+      <label><span class="label-caption"><svg class="ui-icon" aria-hidden="true"><use href="#icon-document-check"></use></svg> Tệp PDF cần ký</span>
         <input type="file" name="document_file" accept=".pdf" required data-pdf-file-input>
       </label>
 
       <section class="signature-config">
-        <h2><svg class="title-icon" aria-hidden="true"><use href="#icon-signature"></use></svg> Anh chu ky trong tem PDF</h2>
-        <p class="helper-text">Anh chu ky hien thi trong tem. Phan RSA duoc nhung vao metadata PDF de xac thuc.</p>
+        <h2><svg class="title-icon" aria-hidden="true"><use href="#icon-signature"></use></svg> Ảnh chữ ký</h2>
         <div class="form-grid">
-          <label><span class="label-caption"><svg class="ui-icon" aria-hidden="true"><use href="#icon-image"></use></svg> Upload anh chu ky khac</span>
             <input type="file" name="signature_image" accept=".png,.jpg,.jpeg" data-signature-image-input>
           </label>
           <div class="signature-preview" data-signature-preview>
-            <span>Chon khoa co anh chu ky hoac upload anh moi</span>
-            <img alt="Xem truoc anh chu ky">
+            <span>Chọn khóa có ảnh chữ ký hoặc tải lên ảnh mới</span>
+            <img alt="Xem trước ảnh chữ ký">
           </div>
         </div>
       </section>
@@ -81,7 +81,7 @@
       <section class="document-preview-panel pdf-placement-panel" data-pdf-placement>
         <div class="pdf-toolbar">
           <div class="pdf-page-controls">
-            <button class="btn small" type="button" data-pdf-prev>Truoc</button>
+            <button class="btn small" type="button" data-pdf-prev>Trước</button>
             <input type="number" min="1" value="1" data-pdf-page-input>
             <span data-pdf-total>/ 0</span>
             <button class="btn small" type="button" data-pdf-next>Sau</button>
@@ -91,12 +91,12 @@
           <div class="pdf-canvas-wrap" data-pdf-canvas-wrap>
             <canvas data-pdf-canvas></canvas>
             <div class="signature-marker" data-pdf-marker>
-              <span>Giu de di chuyen</span>
+              <span>Giữ để di chuyển</span>
               <div class="resize-handle" data-pdf-resize-handle></div>
             </div>
           </div>
         </div>
-        <p class="helper-text" data-pdf-status>Chon file PDF de bat dau dat vi tri chu ky.</p>
+      
       </section>
 
       <input type="hidden" name="x" value="160" data-pdf-x>
@@ -106,27 +106,8 @@
       <input type="hidden" name="page" value="1" data-pdf-page>
     {% endif %}
 
-    <button class="btn primary" type="submit"><svg class="ui-icon" aria-hidden="true"><use href="#icon-signature"></use></svg> Ky {{ 'van ban' if method == 'text' else 'PDF' }}</button>
+    <button class="btn primary" type="submit"><svg class="ui-icon" aria-hidden="true"><use href="#icon-signature"></use></svg> Ký {{ 'văn bản' if method == 'text' else 'PDF' }}</button>
   </form>
 {% endif %}
 
-{% if result %}
-  <section class="panel result-panel">
-    <h2><svg class="title-icon" aria-hidden="true"><use href="#icon-signature"></use></svg> Ket qua ky</h2>
-    <div class="result-grid">
-      <div><span>Nguoi ky</span><strong>{{ result.owner_name }}</strong></div>
-      <div><span>Khoa su dung</span><strong>{{ result.key_id }}</strong></div>
-      <div><span>Thoi gian</span><strong>{{ result.signed_at }}</strong></div>
-      {% if result.signed_page %}
-        <div><span>Trang PDF da ky</span><strong>{{ result.signed_page }}</strong></div>
-      {% endif %}
-    </div>
-    {% if method != 'pdf' %}
-      <a class="btn" href="{{ url_for('download_signature', path=result.signature_path) }}">Tai chu ky</a>
-    {% endif %}
-    {% if result.signed_document_path %}
-      <a class="btn primary" href="{{ url_for('download_signed_document', path=result.signed_document_path) }}"><svg class="ui-icon" aria-hidden="true"><use href="#icon-document-check"></use></svg> Tai file da ky</a>
-    {% endif %}
-  </section>
-{% endif %}
 {% endblock %}

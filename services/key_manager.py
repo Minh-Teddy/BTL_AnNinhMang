@@ -9,6 +9,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 
 
 class KeyManager:
+    """NHOM QUAN LY KHOA - Tao, doc, liet ke va xoa cap khoa RSA."""
     DEFAULT_KEY_SIZE = 2048
     SIGNATURE_IMAGE_TYPES = {
         ".png": "image/png",
@@ -21,6 +22,7 @@ class KeyManager:
         self.storage_dir.mkdir(parents=True, exist_ok=True)
 
     def create_key(self, key_name, owner_name):
+        """Tao cap khoa RSA 2048-bit va metadata cua chu so huu."""
         key_id = self._normalize_key_id(key_name)
         owner_name = (owner_name or "").strip()
         key_size = self.DEFAULT_KEY_SIZE
@@ -66,6 +68,7 @@ class KeyManager:
         return metadata
 
     def save_signature_image(self, key_id, image_file):
+        """Luu anh chu ky hien thi; anh nay khong tham gia phep ky RSA."""
         if not image_file or not image_file.filename:
             return self.get_metadata(key_id)
 
@@ -92,6 +95,7 @@ class KeyManager:
         return metadata
 
     def list_keys(self):
+        """Tra ve metadata cua cac khoa dang luu."""
         keys = []
         for metadata_path in sorted(self.storage_dir.glob("*/metadata.json")):
             try:
@@ -101,12 +105,14 @@ class KeyManager:
         return keys
 
     def load_private_key(self, key_id):
+        """Nap khoa rieng de ky noi dung."""
         private_path = self._key_dir(key_id) / "private_key.pem"
         if not private_path.exists():
             raise FileNotFoundError("Không tìm thấy khóa riêng tư.")
         return serialization.load_pem_private_key(private_path.read_bytes(), password=None)
 
     def load_public_key(self, key_id):
+        """Nap khoa cong khai de xac thuc chu ky."""
         public_path = self._key_dir(key_id) / "public_key.pem"
         if not public_path.exists():
             raise FileNotFoundError("Không tìm thấy khóa công khai.")
@@ -142,6 +148,7 @@ class KeyManager:
         return path
 
     def delete_key(self, key_id):
+        """Xoa thu muc khoa sau khi kiem tra duong dan nam trong kho luu."""
         normalized_key_id = self._normalize_key_id(key_id)
         if not normalized_key_id:
             raise ValueError("Mã khóa không hợp lệ.")

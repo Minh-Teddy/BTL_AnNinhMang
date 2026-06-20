@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Ký số thành công - RSA Digital Signature{% endblock %}
+
+{% block content %}
+<section class="verification-result-page signing-result-page">
+  <div class="verification-status-icon valid">
+    <svg aria-hidden="true"><use href="#icon-signature"></use></svg>
+  </div>
+
+  <p class="eyebrow">Kết quả ký số RSA</p>
+  <h1>Ký số thành công</h1>
+  <p class="verification-result-message">
+    Tài liệu đã được ký bằng khóa riêng và thông tin chữ ký đã được lưu thành công.
+  </p>
+
+  <section class="panel result-panel valid">
+    <div class="result-grid signing-summary">
+      <div><span>Tên tài liệu</span><strong>{{ result.document_name }}</strong></div>
+      <div><span>Người ký</span><strong>{{ result.owner_name }}</strong></div>
+      <div><span>Khóa sử dụng</span><strong>{{ result.key_id }}</strong></div>
+      <div><span>Thời gian ký</span><strong>{{ result.signed_at }}</strong></div>
+      {% if result.signed_page %}
+        <div><span>Trang PDF đã ký</span><strong>{{ result.signed_page }}</strong></div>
+      {% endif %}
+      <div><span>Thuật toán</span><strong>{{ result.algorithm }}</strong></div>
+    </div>
+
+  </section>
+
+  <div class="verification-result-actions">
+    {% if method == 'pdf' and result.signed_document_path %}
+      <a class="btn primary" href="{{ url_for('download_signed_document', path=result.signed_document_path) }}">
+        Tải PDF đã ký
+      </a>
+    {% elif result.signature_path %}
+      <a class="btn primary" href="{{ url_for('download_signature', path=result.signature_path) }}">
+        Tải gói văn bản đã ký
+      </a>
+    {% endif %}
+    <a class="btn" href="{{ url_for('sign') }}">Ký tài liệu khác</a>
+    <a class="btn" href="{{ url_for('history') }}">Xem lịch sử</a>
+  </div>
+</section>
+{% endblock %}

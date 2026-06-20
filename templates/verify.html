@@ -6,7 +6,7 @@
 <section class="section-head">
   <div>
     <p class="eyebrow">Kiểm tra toàn vẹn</p>
-    <h1><svg class="heading-icon" aria-hidden="true"><use href="#icon-document-check"></use></svg> {% if method %}Xác thực {% if method == 'text' %}văn bản trực tiếp{% elif method == 'pdf' %}file PDF{% else %}file tài liệu{% endif %}{% else %}Chọn phương thức xác thực{% endif %}</h1>
+    <h1><svg class="heading-icon" aria-hidden="true"><use href="#icon-document-check"></use></svg> {% if method %}Xác thực {% if method == 'text' %}gói văn bản đã ký{% elif method == 'pdf' %}tệp PDF{% else %}tệp tài liệu{% endif %}{% else %}Chọn phương thức xác thực{% endif %}</h1>
   </div>
   {% if method %}
     <a class="btn" href="{{ url_for('verify') }}">Đổi phương thức</a>
@@ -19,22 +19,13 @@
       <label class="method-option">
         <input type="radio" name="processing_method" value="text">
         <span>
-          <strong>Xác thực văn bản trực tiếp</strong>
-          <small>Nhập nội dung văn bản, chữ ký số và chọn khóa công khai.</small>
-        </span>
-      </label>
-      <label class="method-option">
-        <input type="radio" name="processing_method" value="file">
-        <span>
-          <strong>Xác thực file</strong>
-          <small>Tải lên file .txt, nhập chữ ký số và chọn khóa công khai.</small>
+          <strong>Xác thực văn bản trực tiếp</strong>       
         </span>
       </label>
       <label class="method-option">
         <input type="radio" name="processing_method" value="pdf">
         <span>
           <strong>Xác thực PDF</strong>
-          <small>Tải lên PDF đã ký để kiểm tra metadata chữ ký RSA được nhúng trong file.</small>
         </span>
       </label>
     </div>
@@ -42,51 +33,31 @@
   </form>
 {% else %}
   <form class="panel workbench" method="post" enctype="multipart/form-data">
-    <div class="form-grid">
-      <label><span class="label-caption"><svg class="ui-icon" aria-hidden="true"><use href="#icon-document-check"></use></svg> Tên văn bản</span>
-        <input name="document_name" placeholder="{{ 'hopdong.txt' if method == 'text' else ('tailieu.pdf' if method == 'pdf' else 'tailieu.txt') }}">
-      </label>
-      <label><span class="label-caption"><svg class="ui-icon" aria-hidden="true"><use href="#icon-key"></use></svg> Chọn khóa công khai</span>
-        <select name="key_id" required>
-          <option value="">-- Chọn khóa --</option>
-          {% for key in keys %}
-            <option value="{{ key.key_id }}" {% if selected_key == key.key_id %}selected{% endif %}>{{ key.key_id }} - {{ key.owner_name }}</option>
-          {% endfor %}
-        </select>
-      </label>
-    </div>
-
     {% if method == 'text' %}
-      <label><span class="label-caption"><svg class="ui-icon" aria-hidden="true"><use href="#icon-document-check"></use></svg> Văn bản cần xác thực</span>
-        <textarea name="content" placeholder="Nhập đúng nội dung cần kiểm tra">{{ content }}</textarea>
+      <label><span class="label-caption"><svg class="ui-icon" aria-hidden="true"><use href="#icon-document-check"></use></svg> Gói văn bản đã ký</span>
+        <input type="file" name="signed_text_package" accept=".json,application/json" required>
       </label>
+      <p class="helper-text">Dán chữ ký hoặc chọn khóa công khai.</p>
     {% elif method == 'pdf' %}
-      <label><span class="label-caption"><svg class="ui-icon" aria-hidden="true"><use href="#icon-document-check"></use></svg> File PDF cần xác thực</span>
+      <div class="form-grid">
+        <label><span class="label-caption"><svg class="ui-icon" aria-hidden="true"><use href="#icon-document-check"></use></svg> Tên văn bản</span>
+          <input name="document_name" placeholder="tailieu.pdf">
+        </label>
+        <label><span class="label-caption"><svg class="ui-icon" aria-hidden="true"><use href="#icon-key"></use></svg> Chọn khóa công khai</span>
+          <select name="key_id" required>
+            <option value="">-- Chọn khóa --</option>
+            {% for key in keys %}
+              <option value="{{ key.key_id }}" {% if selected_key == key.key_id %}selected{% endif %}>{{ key.key_id }} - {{ key.owner_name }}</option>
+            {% endfor %}
+          </select>
+        </label>
+      </div>
+      <label><span class="label-caption"><svg class="ui-icon" aria-hidden="true"><use href="#icon-document-check"></use></svg> Tệp PDF cần xác thực</span>
         <input type="file" name="document_file" accept=".pdf" required>
       </label>
-    {% else %}
-      <label><span class="label-caption"><svg class="ui-icon" aria-hidden="true"><use href="#icon-image"></use></svg> File cần xác thực</span>
-        <input type="file" name="document_file" accept=".txt" required>
-      </label>
     {% endif %}
-
-    {% if method != 'pdf' %}
-      <label><span class="label-caption"><svg class="ui-icon" aria-hidden="true"><use href="#icon-signature"></use></svg> Chữ ký số Base64</span>
-        <textarea class="mono" name="signature" placeholder="Dán chữ ký số">{{ signature }}</textarea>
-      </label>
-    {% endif %}
-    <button class="btn primary" type="submit"><svg class="ui-icon" aria-hidden="true"><use href="#icon-document-check"></use></svg> Xác thực {{ 'văn bản' if method == 'text' else ('PDF' if method == 'pdf' else 'file') }}</button>
+    <button class="btn primary" type="submit"><svg class="ui-icon" aria-hidden="true"><use href="#icon-document-check"></use></svg> Xác thực {{ 'văn bản' if method == 'text' else 'PDF' }}</button>
   </form>
 {% endif %}
 
-{% if result %}
-  <section class="panel result-panel {{ 'valid' if result.valid else 'invalid' }}">
-    <h2><svg class="title-icon" aria-hidden="true"><use href="#icon-document-check"></use></svg> {{ 'Xác thực thành công' if result.valid else 'Xác thực thất bại' }}</h2>
-    <p class="result-message">{{ result.message }}</p>
-    <div class="result-grid">
-      <div><span>SHA-256 hiện tại</span><strong class="mono">{{ result.hash }}</strong></div>
-      <div><span>Thời gian xác thực</span><strong>{{ result.verified_at }}</strong></div>
-    </div>
-  </section>
-{% endif %}
 {% endblock %}

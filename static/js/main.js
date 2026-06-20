@@ -129,7 +129,7 @@ document.querySelectorAll("form").forEach((form) => {
     documentInput.addEventListener("change", () => {
       const file = documentInput.files && documentInput.files[0];
       if (!file) {
-        documentPreviewText.textContent = "Chọn file .txt để xem trước nội dung tài liệu.";
+        documentPreviewText.textContent = "Chọn tệp .txt để xem trước nội dung tài liệu.";
         return;
       }
 
@@ -180,7 +180,7 @@ document.querySelectorAll("[data-pdf-placement]").forEach((panel) => {
 
   if (!window.pdfjsLib || !fileInput || !canvas || !marker || !handle) {
     if (status) {
-      status.textContent = "Khong tai duoc pdf.js, vui long kiem tra ket noi mang.";
+      status.textContent = "Không tải được pdf.js, vui lòng kiểm tra kết nối mạng.";
     }
     return;
   }
@@ -213,7 +213,6 @@ document.querySelectorAll("[data-pdf-placement]").forEach((panel) => {
     hidden.w.value = pdfW;
     hidden.h.value = pdfH;
     hidden.page.value = state.pageNum;
-    status.textContent = `Trang ${state.pageNum}: X=${pdfX}, Y=${pdfY}, kich thuoc ${pdfW}x${pdfH}`;
   };
 
   const updateMarker = () => {
@@ -269,7 +268,7 @@ document.querySelectorAll("[data-pdf-placement]").forEach((panel) => {
   fileInput.addEventListener("change", () => {
     const file = fileInput.files && fileInput.files[0];
     if (!file) {
-      status.textContent = "Chon file PDF de bat dau dat vi tri chu ky.";
+      status.textContent = "Chọn tệp PDF để bắt đầu đặt vị trí chữ ký.";
       return;
     }
 
@@ -282,7 +281,7 @@ document.querySelectorAll("[data-pdf-placement]").forEach((panel) => {
         state.markerTop = 28;
         renderPage(1);
       }).catch(() => {
-        status.textContent = "Khong doc duoc file PDF vua chon.";
+        status.textContent = "Không đọc được tệp PDF vừa chọn.";
       });
     });
     reader.readAsArrayBuffer(file);
